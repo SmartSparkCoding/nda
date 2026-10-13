@@ -80,6 +80,19 @@ class NdaSignaturesControllerPdfTest < ActionController::TestCase
     assert_select "a[href=?]", nda_signature_path(sign_new: 1), text: "Sign the new NDA"
   end
 
+  test "shows an account linked to a native signature its receipt without a prompt to sign again" do
+    signature = create_signature(users(:two), signed_at: Time.current)
+    signature.nda_signature_links.create!(user: users(:one), proven_via: "admin")
+
+    get :show
+
+    assert_select "h1", "Your NDA is signed!"
+    assert_select ".receipt", /Shared with your other Hack Club account/
+    assert_select ".receipt", text: /Imported from the old signing system/, count: 0
+    assert_select "[data-wizard]", count: 0
+    assert_select "a[href=?]", nda_signature_path(sign_new: 1), count: 0
+  end
+
   test "lets a legacy holder deliberately open the new signing form" do
     create_legacy_signature(users(:one))
 

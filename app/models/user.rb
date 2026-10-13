@@ -49,10 +49,13 @@ class User < ApplicationRecord
     nda_signatures.find_by(document_version: NdaDocument::VERSION)
   end
 
+  # A current native signature beats a legacy one, and the member's own beats one a linked account holds.
   def reportable_nda_signature
-    nda_signatures.approved.native.find_by(document_version: NdaDocument::VERSION) ||
+    linked = nda_signature_links.select(:nda_signature_id)
+    current = NdaSignature.approved.native.where(document_version: NdaDocument::VERSION)
+    current.find_by(user_id: id) || current.where(id: linked).order(:signed_at).first ||
       NdaSignature.approved.legacy.where(user_id: id)
-        .or(NdaSignature.approved.legacy.where(id: nda_signature_links.select(:nda_signature_id)))
+        .or(NdaSignature.approved.legacy.where(id: linked))
         .order(:signed_at).first
   end
 

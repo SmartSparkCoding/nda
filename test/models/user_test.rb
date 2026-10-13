@@ -70,4 +70,31 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal older, users(:one).reportable_nda_signature
   end
+
+  test "a linked account is covered by the other account's current native signature" do
+    native = create_signature(users(:one), signed_at: Time.current)
+    create_legacy_signature(users(:two))
+    native.nda_signature_links.create!(user: users(:two), proven_via: "admin")
+
+    assert_equal native, users(:two).reportable_nda_signature
+  end
+
+  test "the member's own native signature beats a linked one" do
+    linked = create_signature(users(:one), signed_at: 1.day.ago)
+    own = create_signature(users(:two), signed_at: Time.current)
+    linked.nda_signature_links.create!(user: users(:two), proven_via: "admin")
+
+    assert_equal own, users(:two).reportable_nda_signature
+  end
+
+  test "a linked native signature stops counting once it is no longer approved or no longer current" do
+    native = create_signature(users(:one), signed_at: Time.current)
+    native.nda_signature_links.create!(user: users(:two), proven_via: "admin")
+
+    native.update_columns(verification_state: "rejected")
+    assert_nil users(:two).reportable_nda_signature
+
+    native.update_columns(verification_state: "approved", document_version: "2020-01-01")
+    assert_nil users(:two).reportable_nda_signature
+  end
 end

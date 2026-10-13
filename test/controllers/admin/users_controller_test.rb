@@ -97,4 +97,72 @@ class Admin::UsersControllerTest < ActionController::TestCase
       assert_no_difference("LegacyNdaImport.count") { post :recheck_airtable, params: { id: user.id } }
     end
   end
+
+  test "links a second account to another member's legacy NDA with an audit trail" do
+    owner = users(:one)
+    signature = create_legacy_signature(owner)
+    second = User.create!(hack_club_identity_id: "ident!hq", slack_id: "U0HQACCOUNT")
+
+    assert_difference([ "NdaSignatureLink.count", "AdminAction.count" ]) do
+      post :link_nda, params: { id: second.id, slack_id: " #{owner.slack_id.downcase} ", reason: "Same person, HQ account" }
+    end
+
+    assert_redirected_to admin_root_path
+    assert_equal signature, second.reportable_nda_signature
+    link = second.nda_signature_links.sole
+    assert_predicate link, :admin?
+    action = AdminAction.last
+    assert_equal "link_nda", action.action
+    assert_equal second, action.target_user
+    assert_equal owner.slack_id, action.details["owner_slack_id"]
+  end
+
+  test "linking refuses a missing reason, an unknown or own Slack ID, existing coverage, or no NDA" do
+    owner = users(:one)
+    second = User.create!(hack_club_identity_id: "ident!hq", slack_id: "U0HQACCOUNT")
+
+    assert_no_difference("NdaSignatureLink.count") do
+      post :link_nda, params: { id: second.id, slack_id: owner.slack_id, reason: "No NDA yet" }
+      create_legacy_signature(owner)
+      post :link_nda, params: { id: second.id, slack_id: owner.slack_id }
+      post :link_nda, params: { id: second.id, slack_id: "U0NOBODY000", reason: "Typo" }
+      post :link_nda, params: { id: second.id, slack_id: second.slack_id, reason: "Self" }
+      post :link_nda, params: { id: owner.id, slack_id: second.slack_id, reason: "Already covered" }
+    end
+
+    assert_nil second.reportable_nda_signature
+  end
+
+  test "links a second account to another member's current native NDA" do
+    owner = users(:one)
+    signature = create_signature(owner, signed_at: Time.current)
+    second = User.create!(hack_club_identity_id: "ident!hq", slack_id: "U0HQACCOUNT")
+
+    assert_difference("NdaSignatureLink.count") do
+      post :link_nda, params: { id: second.id, slack_id: owner.slack_id, reason: "Same person, HQ account" }
+    end
+
+    assert_equal signature, second.reportable_nda_signature
+    assert_equal "native", AdminAction.last.details["signature_type"]
+    assert_equal "Linked #{second.slack_id} to #{owner.slack_id}'s native NDA.", flash[:notice]
+  end
+
+  test "unlinking removes the link and records who it pointed at" do
+    owner = users(:one)
+    signature = create_legacy_signature(owner)
+    second = User.create!(hack_club_identity_id: "ident!hq", slack_id: "U0HQACCOUNT")
+    signature.nda_signature_links.create!(user: second, proven_via: "challenge")
+
+    assert_no_difference("NdaSignatureLink.count") { post :unlink_nda, params: { id: second.id } }
+    assert_difference("NdaSignatureLink.count", -1) do
+      post :unlink_nda, params: { id: second.id, reason: "Not the same person" }
+    end
+
+    assert_nil second.reportable_nda_signature
+    assert NdaSignature.exists?(signature.id)
+    action = AdminAction.last
+    assert_equal "unlink_nda", action.action
+    assert_equal "challenge", action.details["proven_via"]
+    assert_equal owner.slack_id, action.details["owner_slack_id"]
+  end
 end

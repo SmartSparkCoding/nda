@@ -66,7 +66,7 @@
                 <% elsif current %><span class="pill pill-warning"><%= current.verification_state.humanize %></span>
                 <% elsif user.current_nda_required_at? %><span class="pill pill-warning">Current requested</span>
                 <% elsif signature %><span class="pill">Legacy</span>
-                <% elsif covered %><span class="pill" title="Covered by <%= covered.user.slack_id %>'s legacy NDA">Linked</span>
+                <% elsif covered %><span class="pill" title="Covered by <%= covered.user.slack_id %>'s <%= covered.signature_type %> NDA">Linked</span>
                 <% else %><span class="pill pill-missing">Not signed</span><% end %>
               </td>
               <td><%= displayed&.signed_at ? tag.time(displayed.signed_at.to_date.to_fs(:medium), datetime: displayed.signed_at.iso8601, data: { local_time: true }) : "—" %></td>
@@ -85,6 +85,15 @@
                     <div class="admin-actions-panel">
                       <% unless covered %>
                         <%= button_to "Recheck Airtable (fresh lookup)", recheck_airtable_admin_user_path(user), method: :post, class: "menu-button" %>
+                        <%= form_with url: link_nda_admin_user_path(user), method: :post, data: { confirm: "Cover this member with the other account's NDA? Only bind two accounts that belong to the same person.", reason_prompt: "Reason for linking" } do |form| %>
+                          <%= form.text_field :slack_id, required: true, placeholder: "Slack ID holding the NDA", autocomplete: "off", aria: { label: "Slack ID of the account holding the NDA" } %>
+                          <%= form.submit "Link to another account's NDA", class: "menu-button" %>
+                        <% end %>
+                      <% end %>
+                      <% if covered && covered.user_id != user.id %>
+                        <%= form_with url: unlink_nda_admin_user_path(user), method: :post, data: { confirm: "Remove this member's link to #{covered.user.slack_id}'s NDA? They will read as not signed.", reason_prompt: "Reason for unlinking" } do |form| %>
+                          <%= form.submit "Unlink from #{covered.user.slack_id}'s NDA", class: "menu-button danger-text" %>
+                        <% end %>
                       <% end %>
                       <% if current.nil? && !user.current_nda_required_at? %>
                         <%= form_with url: require_current_nda_admin_user_path(user), method: :post, data: { confirm: "Move this member to the current NDA flow? Their prior NDA will remain on file.", reason_prompt: "Reason for moving" } do |form| %>

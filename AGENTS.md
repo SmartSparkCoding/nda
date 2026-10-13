@@ -172,6 +172,13 @@ Other rules:
   `LegacyNda::Link.linkable?` is the whole rule: approved legacy signatures only, the address must match exactly,
   and a link stops counting the moment its signature is no longer approved. Never link on a name, a Slack
   profile, or an unverified contact email.
+  The one exception is the admin "Link to another account's NDA" action (`Admin::UsersController#link_nda`),
+  where an admin binds the accounts by hand. It can share an approved legacy signature or an approved native
+  signature for the current `NdaDocument::VERSION` (a native link stops counting when the version is bumped, like
+  the signature itself). It requires a reason, stores `proven_via: "admin"` and records a `link_nda`
+  `AdminAction`; `unlink_nda` removes any link, with a reason. A linked account reports the holder's
+  `signature_type`, so a native link reads as `native`: an admin has asserted it is the same person who recorded
+  the pledge. Self-service links stay legacy-only.
 - `AirtableNdaRecord` is a local copy of every signed row, refreshed hourly by `RefreshAirtableNdaCacheJob`
   (`bin/rails airtable:backfill_ndas` runs it by hand). Only the sign-in check treats a miss as final
   (`signed_for(..., cached_only: true)`); a lookup the member asked for goes to the base on a miss, or anyone who

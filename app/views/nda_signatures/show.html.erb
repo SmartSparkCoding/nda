@@ -74,10 +74,17 @@
       <div><dt>Signed by</dt><dd><%= @covered_by.signed_name %></dd></div>
       <div><dt>Signed at</dt><dd><time datetime="<%= @covered_by.signed_at.iso8601 %>" data-local-time><%= @covered_by.signed_at.to_fs(:long) %></time></dd></div>
       <div><dt>Document version</dt><dd><%= @covered_by.document_version %></dd></div>
-      <div><dt>Source</dt><dd>Imported from the old signing system</dd></div>
+      <% if @covered_by.legacy? %>
+        <div><dt>Source</dt><dd>Imported from the old signing system</dd></div>
+      <% end %>
+      <% if @covered_by.user_id != current_user.id %>
+        <div><dt>Account</dt><dd>Shared with your other Hack Club account</dd></div>
+      <% end %>
     </dl>
-    <p>Did someone tell you to sign the new NDA? You can do so here:
-      <%= link_to "Sign the new NDA", nda_signature_path(sign_new: 1) %>.</p>
+    <% if @covered_by.legacy? %>
+      <p>Did someone tell you to sign the new NDA? You can do so here:
+        <%= link_to "Sign the new NDA", nda_signature_path(sign_new: 1) %>.</p>
+    <% end %>
   </section>
 <% else %>
   <% content_for :title, "Sign the Hack Club NDA" %>

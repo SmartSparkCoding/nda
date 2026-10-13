@@ -39,6 +39,20 @@ class Admin::DashboardControllerTest < ActionController::TestCase
     assert_select "a.admin-link", "Admin"
   end
 
+  test "offers linking to uncovered members and unlinking to linked ones" do
+    signature = create_legacy_signature(users(:one))
+    second = User.create!(hack_club_identity_id: "ident!hq", slack_id: "U0HQACCOUNT")
+    signature.nda_signature_links.create!(user: second, proven_via: "admin")
+
+    get :index
+
+    assert_response :success
+    assert_select "form[action='#{link_nda_admin_user_path(users(:two))}'] input[name=slack_id]"
+    assert_select "form[action='#{link_nda_admin_user_path(second)}']", 0
+    assert_select "form[action='#{unlink_nda_admin_user_path(second)}'] input[type=submit][value=?]",
+      "Unlink from #{users(:one).slack_id}'s NDA"
+  end
+
   test "filters members without treating search metacharacters as wildcards" do
     get :index, params: { query: users(:one).slack_id }
     assert_select ".admin-table tbody tr", 1

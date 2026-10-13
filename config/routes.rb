@@ -30,6 +30,8 @@ Rails.application.routes.draw do
       post :recheck_airtable, on: :member
       post :reset_nda, on: :member
       post :require_current_nda, on: :member
+      post :link_nda, on: :member
+      post :unlink_nda, on: :member
     end
     resources :legacy_nda_imports, only: %i[index update]
   end

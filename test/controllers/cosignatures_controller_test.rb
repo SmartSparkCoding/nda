@@ -54,6 +54,16 @@ class CosignaturesControllerTest < ActionDispatch::IntegrationTest
     assert_equal @signature, @user.reload.reportable_nda_signature
   end
 
+  test "signing works from a browser that keeps no session cookie" do
+    ActionController::Base.allow_forgery_protection = true
+    post cosign_path(@token), params: { accepted: "1", cosigner_signed_name: "Byron Lovelace" }
+
+    assert_response :success
+    assert_predicate @signature.reload, :approved?
+  ensure
+    ActionController::Base.allow_forgery_protection = false
+  end
+
   test "the agreement stays pending without the checkbox or a matching name" do
     post cosign_path(@token), params: { cosigner_signed_name: "Byron Lovelace" }
     assert_response :unprocessable_entity

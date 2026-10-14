@@ -1,4 +1,8 @@
 class CosignaturesController < ApplicationController
+  # The secret token in the URL already authorises this POST: a forger would need it, and anyone holding it can
+  # sign directly. The session-bound CSRF token adds nothing and breaks signing from in-app mail browsers that
+  # don't keep cookies, where every POST fails with a 422 InvalidAuthenticityToken.
+  skip_forgery_protection only: :create
   before_action :private_headers
 
   def show
@@ -33,8 +37,7 @@ class CosignaturesController < ApplicationController
     render :show, status: :unprocessable_entity
   end
 
-  # The token is in the URL, so keep it from leaking to other origins. Not "no-referrer": that makes the
-  # browser send `Origin: null` on the signing POST, which Rails' forgery protection rejects with a 422.
+  # The token is in the URL, so keep it from leaking to other origins.
   def private_headers
     response.set_header("Referrer-Policy", "same-origin")
     response.set_header("X-Robots-Tag", "noindex, nofollow")

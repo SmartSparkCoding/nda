@@ -6,5 +6,6 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "link[rel='icon'][href='https://assets.hackclub.com/icon-rounded.png']"
     assert_select "h1", "Hack Club NDA"
+    assert_select "a[href='/llms.txt']", "llms.txt"
   end
 end

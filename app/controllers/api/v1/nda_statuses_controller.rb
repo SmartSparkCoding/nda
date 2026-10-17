@@ -9,7 +9,6 @@ class Api::V1::NdaStatusesController < ApplicationController
     end
 
     signature = User.find_by(slack_id: slack_id)&.reportable_nda_signature
-    expires_in 30.seconds, public: true
     render json: status_payload(signature).merge(slack_id: slack_id)
   end
 

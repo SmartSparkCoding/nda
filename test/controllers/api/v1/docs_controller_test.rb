@@ -38,6 +38,12 @@ class Api::V1::DocsControllerTest < ActionDispatch::IntegrationTest
       { "$ref" => "#/components/schemas/NdaStatusByEmail" }
     ], operation.dig("responses", "200", "content", "application/json", "schema", "oneOf")
     assert_equal %w[200 400 429], operation["responses"].keys
+    %w[200 400 429].each do |status|
+      %w[RateLimit-Limit RateLimit-Remaining RateLimit-Reset RateLimit-Policy RateLimit].each do |header|
+        assert operation.dig("responses", status, "headers", header), "Missing #{header} on #{status}"
+      end
+    end
+    assert operation.dig("responses", "429", "headers", "Retry-After")
     assert_equal [], operation["security"]
     assert_equal %w[nda_version signature_type signed_at slack_id status],
       document.dig("components", "schemas", "NdaStatus", "properties").keys.sort

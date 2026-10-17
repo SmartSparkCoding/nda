@@ -76,8 +76,27 @@
         <code>429 Too Many Requests</code>
       </div>
       <p>Each client IP may make up to 10 requests per second across the site. Additional requests receive <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</p>
+      <p>Every API response, including errors, reports the budget after the request:</p>
+      <ul>
+        <li><code>RateLimit-Limit</code>: requests allowed per window.</li>
+        <li><code>RateLimit-Remaining</code>: requests left the current window.</li>
+        <li><code>RateLimit-Reset</code>: seconds until the window resets</li>
+        <li><code>RateLimit-Policy</code> and <code>RateLimit</code>: the same quota and budget in the <a href="https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers">IETF draft format</a></li>
+      </ul>
+      <p>The budget is shared across the site by client IP, including failed requests. When remaining reaches zero, wait for reset. On a 429, wait at least <code>Retry-After</code> seconds before retrying. Concurrent requests may consume the remaining budget.</p>
+      <pre><code>HTTP/1.1 200 OK
+RateLimit-Limit: 10
+RateLimit-Remaining: 9
+RateLimit-Reset: 1
+RateLimit-Policy: "requests-per-ip";q=10;w=1
+RateLimit: "requests-per-ip";r=9;t=1</code></pre>
       <pre><code>HTTP/1.1 429 Too Many Requests
 Content-Type: text/plain
+RateLimit-Limit: 10
+RateLimit-Remaining: 0
+RateLimit-Reset: 1
+RateLimit-Policy: "requests-per-ip";q=10;w=1
+RateLimit: "requests-per-ip";r=0;t=1
 Retry-After: 1
 
 Retry later</code></pre>

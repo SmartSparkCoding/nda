@@ -11,7 +11,7 @@ class Api::V1::NdaStatusesControllerTest < ActionDispatch::IntegrationTest
       "status" => "signed", "nda_version" => NdaDocument::VERSION,
       "signed_at" => signature.signed_at.iso8601, "signature_type" => "native"
     }, response.parsed_body)
-    assert_equal "no-store", response.headers["Cache-Control"]
+    assert_equal "private, no-store", response.headers["Cache-Control"]
   end
 
   test "looks up encoded emails in the path without treating dots as a format" do
@@ -23,7 +23,7 @@ class Api::V1::NdaStatusesControllerTest < ActionDispatch::IntegrationTest
     p = response.parsed_body
     assert_equal "signed", p["status"]
     assert_equal %w[nda_version signature_type signed_at status], p.keys.sort
-    assert_equal "no-store", response.headers["Cache-Control"]
+    assert_equal "private, no-store", response.headers["Cache-Control"]
   end
 
   test "malformed path emails cannot be overridden by a query email" do
@@ -50,7 +50,7 @@ class Api::V1::NdaStatusesControllerTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_equal({ "status" => "not_signed", "nda_version" => NdaDocument::VERSION }, response.parsed_body)
-      assert_equal "no-store", response.headers["Cache-Control"]
+      assert_equal "private, no-store", response.headers["Cache-Control"]
     end
   end
 

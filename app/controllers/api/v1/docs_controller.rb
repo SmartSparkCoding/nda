@@ -20,6 +20,13 @@ class Api::V1::DocsController < ApplicationController
         }
       }
     }
+    rate_limit_headers = {
+      "RateLimit-Limit" => { description: "Request quota per client IP per window.", schema: { type: "integer", example: 10 } },
+      "RateLimit-Remaining" => { description: "Requests remaining after this request, clamped to zero.", schema: { type: "integer", minimum: 0, example: 9 } },
+      "RateLimit-Reset" => { description: "Seconds until the window resets (not a Unix timestamp).", schema: { type: "integer", minimum: 1, example: 1 } },
+      "RateLimit-Policy" => { description: "Quota policy in the IETF draft format.", schema: { type: "string", example: '"requests-per-ip";q=10;w=1' } },
+      "RateLimit" => { description: "Remaining quota and seconds to reset in the IETF draft format.", schema: { type: "string", example: '"requests-per-ip";r=9;t=1' } }
+    }
     expires_in 1.hour, public: true
     render json: {
       openapi: "3.1.0",
@@ -34,7 +41,7 @@ class Api::V1::DocsController < ApplicationController
           get: {
             operationId: "getNdaStatus",
             summary: "Check a member's NDA status",
-            description: "Accepts a Slack ID or URL-encoded email (for example orpheus%40example.com). Unknown identifiers return not_signed. Email lookup checks signing and verified account emails, ignoring case and surrounding whitespace, using recorded signatures only. Email responses omit Slack ID and are not cached.",
+            description: "Accepts a Slack ID or URL-encoded email (for example orpheus%40example.com). Unknown identifiers return not_signed. Email lookup checks signing and verified account emails, ignoring case and surrounding whitespace, using recorded signatures only. Email responses omit Slack ID. Each client IP shares 10 requests per one-second window across the site, including failed requests. All status responses use private, no-store to keep quota headers current. Wait for RateLimit-Reset when RateLimit-Remaining is zero; on HTTP 429 wait at least Retry-After seconds before retrying.",
             security: [],
             parameters: [
               {
@@ -52,12 +59,12 @@ class Api::V1::DocsController < ApplicationController
             responses: {
               "200" => {
                 description: "The member's status for the current NDA version.",
-                headers: {
+                headers: rate_limit_headers.merge(
                   "Cache-Control" => {
-                    description: "Slack responses may be cached publicly for 30 seconds; email responses use no-store.",
+                    description: "private, no-store: responses and per-IP quota headers must not be cached.",
                     schema: { type: "string" }
                   }
-                },
+                ),
                 content: {
                   "application/json" => {
                     schema: { oneOf: [
@@ -94,6 +101,7 @@ class Api::V1::DocsController < ApplicationController
               },
               "400" => {
                 description: "The Slack ID or email is malformed (invalid_slack_id or invalid_email).",
+                headers: rate_limit_headers,
                 content: {
                   "application/json" => {
                     schema: { "$ref": "#/components/schemas/Error" },
@@ -103,12 +111,12 @@ class Api::V1::DocsController < ApplicationController
               },
               "429" => {
                 description: "The client IP exceeded 10 requests in one second.",
-                headers: {
+                headers: rate_limit_headers.merge(
                   "Retry-After" => {
                     description: "Seconds until the client can retry.",
                     schema: { type: "integer", minimum: 1 }
                   }
-                },
+                ),
                 content: {
                   "text/plain" => {
                     schema: { type: "string" },

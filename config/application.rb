@@ -10,11 +10,15 @@ require "action_view/railtie"
 require "rails/test_unit/railtie"
 
 Bundler.require(*Rails.groups)
+require_relative "../lib/api_rate_limit_headers"
 
 module Nda
   class Application < Rails::Application
     config.load_defaults 8.1
     config.autoload_lib(ignore: %w[assets tasks])
+    initializer "nda.api_rate_limit_headers", after: "rack-attack.middleware" do |app|
+      app.middleware.insert_before Rack::Attack, ApiRateLimitHeaders
+    end
 
     config.generators do |g|
       g.helper false

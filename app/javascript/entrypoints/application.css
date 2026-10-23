@@ -346,7 +346,7 @@ blockquote li + li { margin-top: 10px; }
 
 .info-card p {
   margin: 0;
-  color: var(--ink);
+  color: #f2f2f2;
   font-size: 14px;
   line-height: 1.75;
 }
@@ -399,7 +399,7 @@ blockquote li + li { margin-top: 10px; }
     background: #29282e;
     border-color: var(--line);
     border-left-color: var(--red);
-    color: var(--ink);
+    color: #f2f2f2;
   }
 
   .info-card {

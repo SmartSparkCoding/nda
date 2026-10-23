@@ -23,4 +23,14 @@ class InfoControllerTest < ActionDispatch::IntegrationTest
       get "/parents"
     end
   end
+
+  test "shows NDA signing link when signed in" do
+    session[:user_id] = users(:one).id
+
+    get info_url
+
+    assert_response :success
+    assert_select "a[href='#{nda_signature_path}']",
+                  "Go to the NDA signing page"
+  end
 end

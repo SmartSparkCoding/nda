@@ -41,6 +41,10 @@ GET /api/v1/nda_status/U0123ABCDEF
 GET /api/v1/nda_status/orpheus%40example.com
 ```
 
+See the [API docs](https://nda.hackclub.com/api/v1/docs) for more information.
+
+Point your agents at the [OpenAPI spec](https://nda.hackclub.com/openapi.json), and [llms.txt](https://nda.hackclub.com/llms.txt).
+
 ## information for families
 
 The public `/info` page explains the purpose of the Hack Club NDA
@@ -50,6 +54,3 @@ It is general information only and does not replace the agreement.
 The wording should remain consistent with the actual signing flow,
 agreement, and current privacy practices.
 
-See the [API docs](https://nda.hackclub.com/api/v1/docs) for more information.
-
-Point your agents at the [OpenAPI spec](https://nda.hackclub.com/openapi.json), and [llms.txt](https://nda.hackclub.com/llms.txt).

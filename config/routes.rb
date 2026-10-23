@@ -36,6 +36,9 @@ Rails.application.routes.draw do
     resources :legacy_nda_imports, only: %i[index update]
   end
 
+  get "/parents", to: "parents#show"
+  get "/info", to: "parents#show", as: :parents
+
   get "/openapi.json", to: "api/v1/docs#openapi", as: :openapi
 
   namespace :api do

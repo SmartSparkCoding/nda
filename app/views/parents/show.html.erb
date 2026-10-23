@@ -1,0 +1,63 @@
+<% content_for :title, "Parents & Guardians Guide — Hack Club NDA" %>
+
+<div class="shell parents-page">
+  <div class="eyebrow">Parents & Guardians</div>
+  <h1>Understanding the Hack Club NDA</h1>
+  <p class="lede">A guide for parents, guardians, and family members of Hack Club community members and volunteers.</p>
+
+  <section class="parents-disclaimer">
+    <p><strong>Note:</strong> This page provides general information for parents and guardians to understand why Hack Club uses a Non-Disclosure Agreement (NDA). It is for informational purposes only and does not modify or replace reading the actual legal agreement.</p>
+  </section>
+
+  <section class="parents-section">
+    <h2>What is an NDA?</h2>
+    <p>A Non-Disclosure Agreement (NDA) is a legal contract designed to keep sensitive or proprietary information confidential. By signing an NDA, a person promises not to share or misuse private information they might access as part of their participation or volunteering with an organization.</p>
+  </section>
+
+  <section class="parents-section">
+    <h2>Why is your teenager being asked to sign this NDA?</h2>
+    <p>Hack Club is a non-profit global network of teenage programmers, makers, and organizers. As members take on leadership or volunteer roles—such as organizing hackathons, moderating community platforms, managing internal software tools, or assisting with programs—they may be granted access to sensitive systems.</p>
+    <p>These systems may contain confidential information, including:</p>
+    <ul>
+      <li>Personal details and contact information of other teenage community members.</li>
+      <li>Internal operational plans, administrative tools, and organizational communications.</li>
+      <li>Private vendor relationships, financial management tools, or partner details.</li>
+    </ul>
+    <p>Signing this NDA ensures that volunteers recognize the serious responsibility of handling private community data and commit to protecting it.</p>
+  </section>
+
+  <section class="parents-section">
+    <h2>Key Details for Parents & Guardians</h2>
+    <div class="parents-grid">
+      <div class="parents-card">
+        <h3>1. Co-Signing Requirement for Minors</h3>
+        <p>If a community member is under the age of 18, the NDA must also be co-signed by a parent or legal guardian. During the signing process, the member provides their parent or guardian's name and email address, and an email invitation with a co-signing link is sent directly to the co-signer.</p>
+      </div>
+
+      <div class="parents-card">
+        <h3>2. Volunteer Status (No Employment)</h3>
+        <p>Signing the NDA does <strong>not</strong> create an employment or independent contractor relationship between the signer and The Hack Foundation / Hack Club. It simply governs how confidential information must be treated while participating in authorized activities.</p>
+      </div>
+
+      <div class="parents-card">
+        <h3>3. Scope & Permitted Use</h3>
+        <p>The agreement requires signers to keep confidential information secure and prohibits using or disclosing that data for any purpose outside of their authorized activities with Hack Club.</p>
+      </div>
+
+      <div class="parents-card">
+        <h3>4. Privacy & Data Handling</h3>
+        <p>Hack Club takes privacy and security seriously. Video pledges recorded during the signing process are stored securely in encrypted storage (SSE-C) and audio transcript processing adheres to strict Zero Data Retention policies.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="parents-section">
+    <h2>Where to Read the Agreement</h2>
+    <p>We encourage parents and guardians to read the actual agreement together with their teenager. You can view or sign the contract when logged in through Hack Club Auth, or read the full agreement text during the signing workflow.</p>
+    <% if current_user %>
+      <p><%= link_to "Go to NDA Signing Page", nda_signature_path, class: "button button-primary" %></p>
+    <% else %>
+      <p><%= link_to "Sign in to view agreement", login_path, class: "button button-primary" %></p>
+    <% end %>
+  </section>
+</div>
